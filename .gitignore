@@ -1,3 +1,5 @@
 node_modules/
 .wrangler/
 .dev.vars
+.round.env
+agent-loop.log
