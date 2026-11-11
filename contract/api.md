@@ -18,6 +18,10 @@ All answers are JSON. Times are ISO 8601, UTC.
 
 - Every incident production has, newest first, with exactly these fields.
 - Read from production's incident feed (`FEED_URL`).
+- `?status=open` answers only open incidents, `?status=resolved` only resolved ones. No `status` = all.
+- `?since=<ISO time>` answers only incidents opened after that time. No `since` = all.
+- Both may be combined. Fields and order are unchanged. An unknown `status` or an unparseable `since`
+  answers `400` with `{ "error": "bad query" }`.
 
 ## `GET /incidents/{id}`
 

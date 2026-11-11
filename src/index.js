@@ -13,7 +13,16 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     if (request.method === 'GET' && url.pathname === '/incidents') {
-      return json({ incidents: await feed(env) });
+      const status = url.searchParams.get('status');
+      const since = url.searchParams.get('since');
+      const sinceMs = since === null ? null : Date.parse(since);
+      if ((status !== null && !['open', 'resolved'].includes(status)) || Number.isNaN(sinceMs)) {
+        return json({ error: 'bad query' }, 400);
+      }
+      let incidents = await feed(env);
+      if (status) incidents = incidents.filter((i) => i.status === status);
+      if (sinceMs !== null) incidents = incidents.filter((i) => Date.parse(i.openedAt) > sinceMs);
+      return json({ incidents });
     }
     const m = request.method === 'GET' && url.pathname.match(/^\/incidents\/([^/]+)$/);
     if (m) {
