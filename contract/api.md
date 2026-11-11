@@ -13,10 +13,13 @@ All answers are JSON. Times are ISO 8601, UTC.
 ## `GET /incidents`
 
 ```json
-{ "incidents": [ { "id": "INC-1234", "service": "booking-api", "summary": "…", "status": "open", "openedAt": "2026-11-11T02:43:00.000Z" } ] }
+{ "incidents": [ { "id": "INC-1234", "service": "booking-api", "summary": "…", "status": "open", "openedAt": "2026-11-11T02:43:00.000Z", "suggestions": [] } ] }
 ```
 
 - Every incident production has, newest first, with exactly these fields.
+- `suggestions` (decision 0008, option 2): a list on every incident, `[]` by default. Only the oldest open
+  incident carries one `{ "text": "…" }` line, and only when another open incident shares its service.
+  Read-only: no accept call, never a restart. Computed over the whole feed, so `?status`/`?since` do not change it.
 - Read from production's incident feed (`FEED_URL`).
 - `?status=open` answers only open incidents, `?status=resolved` only resolved ones. No `status` = all.
 - `?since=<ISO time>` answers only incidents opened after that time. No `since` = all.
@@ -26,7 +29,7 @@ All answers are JSON. Times are ISO 8601, UTC.
 ## `GET /incidents/{id}`
 
 ```json
-{ "incident": { "id": "INC-1234", "service": "booking-api", "summary": "…", "status": "open", "openedAt": "2026-11-11T02:43:00.000Z" } }
+{ "incident": { "id": "INC-1234", "service": "booking-api", "summary": "…", "status": "open", "openedAt": "2026-11-11T02:43:00.000Z", "suggestions": [] } }
 ```
 
 - One incident from the same feed, with exactly the fields `GET /incidents` gives it.

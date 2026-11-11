@@ -6,7 +6,19 @@ async function feed(env) {
   const res = await fetch(env.FEED_URL);
   if (!res.ok) throw new Error(`feed answered ${res.status}`);
   const { incidents } = await res.json();
-  return incidents;
+  return withSuggestions(incidents);
+}
+
+// Decision 0008, option 2: one read-only line, on the oldest open incident (where operators start),
+// only when sure: another open incident shares its service. Never advice, never a restart.
+function withSuggestions(incidents) {
+  const open = incidents.filter((i) => i.status === 'open');
+  const top = open.reduce((a, i) => (!a || Date.parse(i.openedAt) < Date.parse(a.openedAt) ? i : a), null);
+  const same = top ? open.filter((i) => i.service === top.service && i !== top).length : 0;
+  return incidents.map((i) => ({
+    ...i,
+    suggestions: i === top && same ? [{ text: `Start here: ${same} other open incident${same > 1 ? 's' : ''} on ${top.service}.` }] : [],
+  }));
 }
 
 export default {
