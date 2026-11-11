@@ -27,7 +27,9 @@ if (process.argv[1] === new URL(import.meta.url).pathname) {
       const todo = pending(issues);
       if (todo.length) {
         log({ ev: 'run', todo });
-        const prompt = `Load the triage skill (.agents/skills/triage/SKILL.md) and AGENTS.md. Work these issues now: ${todo.join(', ')}. Tracker: ${TRACKER_URL} (token in env TRACKER_TOKEN; never print it). Live address is in .live-url. Finish every step, then stop.`;
+        for (const i of issues.filter((x) => todo.includes(x.n) && !x.thread.some((e) => e.by === 'agent'))) // trace inside the 5-minute window
+          await fetch(`${TRACKER_URL}/issues/${i.n}/comments`, { method: 'POST', headers: { Authorization: `Bearer ${TRACKER_TOKEN}`, 'content-type': 'application/json' }, body: JSON.stringify({ body: 'Picked up by the agent. Triaging now: I will build, decline or ask the owner, and post a ship line.' }) });
+        const prompt = `Load the triage skill (.agents/skills/triage/SKILL.md) and AGENTS.md. Work these issues now: ${todo.join(', ')}. Use the tracker ONLY via: node tracker.mjs GET /issues | node tracker.mjs POST /issues/1/comments '{"body":"…"}' (auth is built in; never read .round.env or env vars). Live address is in .live-url. Finish every step, then stop.`;
         const r = spawnSync('claude', ['-p', prompt, '--allowedTools', ...ALLOWED], { encoding: 'utf8', timeout: 20 * 60_000, env: process.env });
         log({ ev: 'done', status: r.status, out: String(r.stdout).slice(-1500), err: String(r.stderr).slice(-500) });
       }
