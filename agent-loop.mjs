@@ -10,7 +10,6 @@ const get = async (p) => (await fetch(TRACKER_URL + p, { headers: { Authorizatio
 // Work to do = an open issue with no agent entry yet, or a non-agent entry (owner/course) newer than the agent's last one.
 export function pending(issues) {
   return issues.filter((i) => {
-    if (i.closed) return false;
     const last = (k) => i.thread.filter((e) => k(e.by)).at(-1)?.at ?? '';
     const agent = last((b) => b === 'agent');
     return !agent || last((b) => b !== 'agent') > agent;
